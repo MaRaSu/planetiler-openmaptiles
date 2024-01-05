@@ -182,19 +182,49 @@ public class Transportation implements
       false
     );
     MINZOOMS = Map.ofEntries(
-      entry(FieldValues.CLASS_PATH, z13Paths ? 13 : 14),
-      entry(FieldValues.CLASS_TRACK, 14),
-      entry(FieldValues.CLASS_SERVICE, 13),
-      entry(FieldValues.CLASS_MINOR, 13),
+      entry(FieldValues.CLASS_PATH, z13Paths ? 12 : 11),
+      entry(FieldValues.CLASS_TRACK, 11),
+      entry(FieldValues.CLASS_SERVICE, 10),
+      entry(FieldValues.CLASS_MINOR, 9),
       entry(FieldValues.CLASS_RACEWAY, 12),
-      entry(FieldValues.CLASS_TERTIARY, 11),
+      entry(FieldValues.CLASS_TERTIARY, 8),
       entry(FieldValues.CLASS_BUSWAY, 11),
       entry(FieldValues.CLASS_BUS_GUIDEWAY, 11),
-      entry(FieldValues.CLASS_SECONDARY, 9),
-      entry(FieldValues.CLASS_PRIMARY, 7),
+      entry(FieldValues.CLASS_SECONDARY, 7),
+      entry(FieldValues.CLASS_PRIMARY, 6),
       entry(FieldValues.CLASS_TRUNK, 5),
       entry(FieldValues.CLASS_MOTORWAY, 4)
     );
+  }
+
+  private static float width(Object value) {
+    if (value == null) {
+        return 0.0f; // or throw an exception
+    }
+    String widthStr = String.valueOf(value);
+    return Float.parseFloat(widthStr);
+  }
+
+  private static String widthCat(Object value) {
+    if (value == null) {
+        return null;
+    }
+    String widthStr = String.valueOf(value);
+  
+    try {
+      Float width = Float.parseFloat(widthStr);
+      if (width < 0.6) {
+          return "a";
+      } else if (width < 0.9) {
+          return "b";
+      } else if (width < 1.8) {
+          return "c";
+      } else {
+          return "d";
+      }
+    } catch (NumberFormatException e) {
+      return null;
+    }
   }
 
   /** Returns a value for {@code surface} tag constrained to a small set of known values from raw OSM data. */
@@ -456,9 +486,15 @@ public class Transportation implements
         .setAttr(Fields.RAMP, minzoom >= 12 ? rampAboveZ12 :
           ((ZoomFunction<Integer>) z -> z < 9 ? null : z >= 12 ? rampAboveZ12 : rampBelowZ12))
         // z12+
-        .setAttrWithMinzoom(Fields.SERVICE, service, 12)
+        .setAttrWithMinzoom(Fields.SERVICE, service, 11)
         .setAttrWithMinzoom(Fields.ONEWAY, nullIfInt(element.isOneway(), 0), 12)
         .setAttrWithMinzoom(Fields.SURFACE, surface(coalesce(element.surface(), element.tracktype())), 12)
+        .setAttrWithMinzoom("surface_raw", nullIfEmpty(element.surface()), 9)
+        .setAttrWithMinzoom("width", element.source().getTag("width"), 12)
+        .setAttrWithMinzoom("width_cat", widthCat(element.source().getTag("width")), 12)
+        .setAttrWithMinzoom("trail_visibility", element.source().getTag("trail_visibility"), 12)
+        .setAttrWithMinzoom("obstacle", element.source().getTag("obstacle"), 12)
+        .setAttrWithMinzoom("mtb_winter", element.source().getTag("mtb:winter"), 12)
         .setMinPixelSize(0) // merge during post-processing, then limit by size
         .setSortKey(element.zOrder())
         .setMinZoom(minzoom);
@@ -484,14 +520,16 @@ public class Transportation implements
     int minzoom;
     if ("pier".equals(element.manMade())) {
       minzoom = 13;
-    } else if (isResidentialOrUnclassified(highway)) {
-      minzoom = 12;
+    //} else if (isResidentialOrUnclassified(highway)) {
+    //  minzoom = 9;
     } else {
       String baseClass = highwayClass.replace("_construction", "");
       minzoom = switch (baseClass) {
+        /* 
         case FieldValues.CLASS_SERVICE -> isDrivewayOrParkingAisle(service(element.service())) ? 14 : 13;
         case FieldValues.CLASS_TRACK, FieldValues.CLASS_PATH -> routeRank == 1 ? 12 :
           (z13Paths || !nullOrEmpty(element.name()) || routeRank <= 2 || !nullOrEmpty(element.sacScale())) ? 13 : 14;
+          */
         case FieldValues.CLASS_TRUNK -> {
           // trunks in some networks to have same min. zoom as highway = "motorway"
           String clazz = routeRelations.stream()

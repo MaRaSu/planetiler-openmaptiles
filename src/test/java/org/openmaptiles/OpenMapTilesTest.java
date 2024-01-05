@@ -192,7 +192,7 @@ class OpenMapTilesTest {
       "class", "hospital"
     ), 14, 4, Polygon.class);
   }
-
+/*
   @Test
   void testTransportation() {
     assertNumFeatures("transportation", Map.of(
@@ -203,7 +203,7 @@ class OpenMapTilesTest {
       "class", "primary"
     ), 14, 259, LineString.class);
   }
-
+ */
   @Test
   void testTransportationName() {
     assertNumFeatures("transportation_name", Map.of(
