@@ -183,7 +183,7 @@ public class Transportation implements
     );
     MINZOOMS = Map.ofEntries(
       entry(FieldValues.CLASS_PATH, z13Paths ? 12 : 11),
-      entry(FieldValues.CLASS_TRACK, 11),
+      entry(FieldValues.CLASS_TRACK, 10),
       entry(FieldValues.CLASS_SERVICE, 10),
       entry(FieldValues.CLASS_MINOR, 9),
       entry(FieldValues.CLASS_RACEWAY, 12),
@@ -225,6 +225,113 @@ public class Transportation implements
     } catch (NumberFormatException e) {
       return null;
     }
+  }
+
+  private static String mtbScaleCat(String mtbScale) {
+    if (mtbScale == null) {
+        return null;
+    }
+    try {
+    if ("-1".equals(mtbScale) || "0".equals(mtbScale) || "0-".equals(mtbScale)) {
+        return mtbScale;
+    }
+
+    // Check if mtbScale is a digit (0 to 6) or a digit followed by + or -
+    if (mtbScale.matches("[0-6]([+-])?")) {
+        return mtbScale.replaceAll("[+-]", ""); // Remove + or - if present and return the number part
+    }
+
+    return null;
+  
+    } catch (NumberFormatException e) {
+      return null;
+    }
+  } 
+
+  private static String getCyclewayLeft(Tables.OsmHighwayLinestring element) {
+    String[] tagsToCheck = {"cycleway:both", "cycleway:left", "cycleway", "sidewalk:both:bicycle", "sidewalk:left:bicycle"};
+    for (String tag : tagsToCheck) {
+        Object valueObj = element.source().getTag(tag);
+        if (valueObj instanceof String) {
+            String value = (String) valueObj;
+            if ("yes".equals(value) || "track".equals(value) || "lane".equals(value)) {
+                return "yes";
+            }
+        }
+    }
+    return "no";
+  }
+
+  private static String getCyclewayRight(Tables.OsmHighwayLinestring element) {
+      String[] tagsToCheck = {"cycleway:both", "cycleway:right", "cycleway", "sidewalk:both:bicycle", "sidewalk:right:bicycle"};
+      for (String tag : tagsToCheck) {
+          Object valueObj = element.source().getTag(tag);
+          if (valueObj instanceof String) {
+              String value = (String) valueObj;
+              if ("yes".equals(value) || "track".equals(value) || "lane".equals(value)) {
+                  return "yes";
+              }
+          }
+      }
+      return "no";
+  }
+
+  private static String getFootwayLeft(Tables.OsmHighwayLinestring element) {
+      boolean hasSidewalk = checkValues(element, "sidewalk", new String[]{"yes", "designated", "both", "lane", "left"});
+      boolean hasBothSidewalk = checkValues(element, "sidewalk:both", new String[]{"yes", "designated", "lane"});
+      boolean hasLeftSidewalk = checkValues(element, "sidewalk:left", new String[]{"yes", "designated", "lane"});
+      
+      boolean noBicycle = checkNotValuesOrNull(element, "sidewalk:bicycle", new String[]{"yes", "designated", "track", "lane"});
+      boolean noBothBicycle = checkNotValuesOrNull(element, "sidewalk:both:bicycle", new String[]{"yes", "designated", "track", "lane"});
+      boolean noLeftBicycle = checkNotValuesOrNull(element, "sidewalk:left:bicycle", new String[]{"yes", "designated", "track", "lane"});
+
+      if ((hasSidewalk || hasBothSidewalk || hasLeftSidewalk) && noBicycle && noBothBicycle && noLeftBicycle) {
+          return "yes";
+      }
+      return "no";
+  }
+
+  private static String getFootwayRight(Tables.OsmHighwayLinestring element) {
+      boolean hasSidewalk = checkValues(element, "sidewalk", new String[]{"yes", "designated", "both", "lane", "right"});
+      boolean hasBothSidewalk = checkValues(element, "sidewalk:both", new String[]{"yes", "designated", "lane"});
+      boolean hasRightSidewalk = checkValues(element, "sidewalk:right", new String[]{"yes", "designated", "lane"});
+      
+      boolean noBicycle = checkNotValuesOrNull(element, "sidewalk:bicycle", new String[]{"yes", "designated", "track", "lane"});
+      boolean noBothBicycle = checkNotValuesOrNull(element, "sidewalk:both:bicycle", new String[]{"yes", "designated", "track", "lane"});
+      boolean noRightBicycle = checkNotValuesOrNull(element, "sidewalk:right:bicycle", new String[]{"yes", "designated", "track", "lane"});
+
+      if ((hasSidewalk || hasBothSidewalk || hasRightSidewalk) && noBicycle && noBothBicycle && noRightBicycle) {
+          return "yes";
+      }
+      return "no";
+  }
+
+  private static boolean checkValues(Tables.OsmHighwayLinestring element, String key, String[] values) {
+      Object valueObj = element.source().getTag(key);
+      if (valueObj instanceof String) {
+          String value = (String) valueObj;
+          for (String v : values) {
+              if (v.equals(value)) {
+                  return true;
+              }
+          }
+      }
+      return false;
+  }
+
+  private static boolean checkNotValuesOrNull(Tables.OsmHighwayLinestring element, String key, String[] values) {
+      Object valueObj = element.source().getTag(key);
+      if (valueObj == null) return true;
+      if (valueObj instanceof String) {
+          String value = (String) valueObj;
+          for (String v : values) {
+              if (v.equals(value)) {
+                  return false;
+              }
+          }
+          return true;
+      }
+      return false;
   }
 
   /** Returns a value for {@code surface} tag constrained to a small set of known values from raw OSM data. */
@@ -479,7 +586,7 @@ public class Transportation implements
         .setAttrWithMinzoom(Fields.BICYCLE, nullIfEmpty(element.bicycle()), 9)
         .setAttrWithMinzoom(Fields.FOOT, nullIfEmpty(element.foot()), 9)
         .setAttrWithMinzoom(Fields.HORSE, nullIfEmpty(element.horse()), 9)
-        .setAttrWithMinzoom(Fields.MTB_SCALE, nullIfEmpty(element.mtbScale()), 9)
+        .setAttrWithMinzoom(Fields.MTB_SCALE, mtbScaleCat(element.mtbScale()), 9)
         .setAttrWithMinzoom(Fields.ACCESS, access(element.access()), 9)
         .setAttrWithMinzoom(Fields.TOLL, element.toll() ? 1 : null, 9)
         // sometimes z9+, sometimes z12+
@@ -488,7 +595,7 @@ public class Transportation implements
         // z12+
         .setAttrWithMinzoom(Fields.SERVICE, service, 11)
         .setAttrWithMinzoom(Fields.ONEWAY, nullIfInt(element.isOneway(), 0), 12)
-        .setAttrWithMinzoom(Fields.SURFACE, surface(coalesce(element.surface(), element.tracktype())), 12)
+        .setAttrWithMinzoom(Fields.SURFACE, surface(coalesce(element.surface(), element.tracktype())), 10)
         .setAttrWithMinzoom("surface_raw", nullIfEmpty(element.surface()), 9)
         .setAttrWithMinzoom("width", element.source().getTag("width"), 12)
         .setAttrWithMinzoom("width_cat", widthCat(element.source().getTag("width")), 12)
@@ -496,23 +603,17 @@ public class Transportation implements
         .setAttrWithMinzoom("obstacle", element.source().getTag("obstacle"), 12)
         .setAttrWithMinzoom("mtb_winter", element.source().getTag("mtb:winter"), 12)
         .setAttrWithMinzoom("cycleway:surface", element.source().getTag("cycleway:surface"), 12)
-        .setAttrWithMinzoom("cycleway:both", element.source().getTag("cycleway:both"), 12)
-        .setAttrWithMinzoom("cycleway:left", element.source().getTag("cycleway:left"), 12)
-        .setAttrWithMinzoom("cycleway:right", element.source().getTag("cycleway:right"), 12)
         .setAttrWithMinzoom("cycleway:both:surface", element.source().getTag("cycleway:both:surface"), 12)
         .setAttrWithMinzoom("cycleway:left:surface", element.source().getTag("cycleway:left:surface"), 12)
         .setAttrWithMinzoom("cycleway:right:surface", element.source().getTag("cycleway:right:surface"), 12)
         .setAttrWithMinzoom("footway:surface", element.source().getTag("footway:surface"), 12)
-        .setAttrWithMinzoom("footway:both", element.source().getTag("footway:both"), 12)
-        .setAttrWithMinzoom("footway:left", element.source().getTag("footway:left"), 12)
-        .setAttrWithMinzoom("footway:right", element.source().getTag("footway:right"), 12)
         .setAttrWithMinzoom("footway:both:surface", element.source().getTag("footway:both:surface"), 12)
         .setAttrWithMinzoom("footway:left:surface", element.source().getTag("footway:left:surface"), 12)
         .setAttrWithMinzoom("footway:right:surface", element.source().getTag("footway:right:surface"), 12)
-        .setAttrWithMinzoom("sidewalk:bicycle", element.source().getTag("sidewalk:bicycle"), 12)
-        .setAttrWithMinzoom("sidewalk:both:bicycle", element.source().getTag("sidewalk:both:bicycle"), 12)
-        .setAttrWithMinzoom("sidewalk:left:bicycle", element.source().getTag("sidewalk:left:bicycle"), 12)
-        .setAttrWithMinzoom("sidewalk:right:bicycle", element.source().getTag("sidewalk:right:bicycle"), 12)
+        .setAttrWithMinzoom("cycleway_left", getCyclewayLeft(element), 12)
+        .setAttrWithMinzoom("cycleway_right", getCyclewayRight(element), 12)
+        .setAttrWithMinzoom("footway_left", getFootwayLeft(element), 12)
+        .setAttrWithMinzoom("footway_right", getFootwayRight(element), 12)
         .setAttrWithMinzoom("mtb:name", element.source().getTag("mtb:name"), 12)
         .setMinPixelSize(0) // merge during post-processing, then limit by size
         .setSortKey(element.zOrder())
