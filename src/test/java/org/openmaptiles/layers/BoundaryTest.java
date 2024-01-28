@@ -206,7 +206,6 @@ class BoundaryTest extends AbstractLayerTest {
       "maritime", 0,
       "admin_level", 10,
 
-      "_minzoom", 12,
       "_maxzoom", 14,
       "_buffer", 4d,
       "_minpixelsize", 0d

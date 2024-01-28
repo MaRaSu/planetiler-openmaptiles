@@ -14,6 +14,10 @@ public class ExtraLayers {
   public static List<Layer> create(Translations translations, PlanetilerConfig config, Stats stats) {
     return List.of(
       // Create classes that extend Layer interface in the addons package, then instantiate them here
+      new LanduseExt(),
+      new BarrierExt(),
+      new PoiExt(),
+      new RouteExt()
     );
   }
 }

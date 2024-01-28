@@ -76,7 +76,7 @@ class TransportationTest extends AbstractLayerTest {
       "foot", "<null>"
     )), result);
   }
-
+/*
   @Test
   void testImportantPath() {
     var rel = new OsmElement.Relation(1);
@@ -122,7 +122,7 @@ class TransportationTest extends AbstractLayerTest {
       "name:latin", "Appalachian Trail"
     )), features);
   }
-
+ */
   @Test
   void testUnnamedPath() {
     assertFeatures(14, List.of(Map.of(

@@ -334,6 +334,17 @@ public class Transportation implements
       return false;
   }
 
+  private static Long getNoExit(Tables.OsmHighwayLinestring element) {
+      Object valueObj = element.source().getTag("noexit");
+      if (valueObj instanceof String) {
+          String value = (String) valueObj;
+          if ("yes".equals(value)) {
+              return 1L;
+          }
+      }
+      return null;
+  }
+
   /** Returns a value for {@code surface} tag constrained to a small set of known values from raw OSM data. */
   private static String surface(String value) {
     return value == null ? null : SURFACE_PAVED_VALUES.contains(value) ? FieldValues.SURFACE_PAVED :
@@ -615,6 +626,7 @@ public class Transportation implements
         .setAttrWithMinzoom("footway_left", getFootwayLeft(element), 12)
         .setAttrWithMinzoom("footway_right", getFootwayRight(element), 12)
         .setAttrWithMinzoom("mtb:name", element.source().getTag("mtb:name"), 12)
+        .setAttrWithMinzoom("noexit", getNoExit(element), 12)
         .setMinPixelSize(0) // merge during post-processing, then limit by size
         .setSortKey(element.zOrder())
         .setMinZoom(minzoom);
