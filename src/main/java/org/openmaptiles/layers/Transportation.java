@@ -137,7 +137,7 @@ public class Transportation implements
     "paving_stones", "sett", "unhewn_cobblestone", "wood", "grade1"
   );
   private static final Set<String> ACCESS_NO_VALUES = Set.of(
-    "private", "no"
+    "private", "no", "destination", "military", "permit", "delivery", "customers"
   );
   private static final Set<RouteNetwork> TRUNK_AS_MOTORWAY_BY_NETWORK = Set.of(
     RouteNetwork.CA_TRANSCANADA,
@@ -320,29 +320,43 @@ public class Transportation implements
   }
 
   private static boolean checkNotValuesOrNull(Tables.OsmHighwayLinestring element, String key, String[] values) {
-      Object valueObj = element.source().getTag(key);
-      if (valueObj == null) return true;
-      if (valueObj instanceof String) {
-          String value = (String) valueObj;
-          for (String v : values) {
-              if (v.equals(value)) {
-                  return false;
-              }
-          }
-          return true;
-      }
-      return false;
+    Object valueObj = element.source().getTag(key);
+    if (valueObj == null) return true;
+    if (valueObj instanceof String) {
+        String value = (String) valueObj;
+        for (String v : values) {
+            if (v.equals(value)) {
+                return false;
+            }
+        }
+        return true;
+    }
+    return false;
   }
 
   private static Long getNoExit(Tables.OsmHighwayLinestring element) {
-      Object valueObj = element.source().getTag("noexit");
-      if (valueObj instanceof String) {
-          String value = (String) valueObj;
-          if ("yes".equals(value)) {
-              return 1L;
-          }
-      }
+    Object valueObj = element.source().getTag("noexit");
+    if (valueObj instanceof String) {
+        String value = (String) valueObj;
+        if ("yes".equals(value)) {
+            return 1L;
+        }
+    }
+    return null;
+  }
+
+  private static String getAccess(String value) {
+    if (value == null) {
       return null;
+    } 
+    if ("yes".equals(value) || "designated".equals(value) || "permissive".equals(value)) {
+        return "yes";
+        // no if "no" or "private" or "dismount" or "destination" or "use_sidepath" or "use_cycleway" or "military" or "permit" or "delivery" or "customers"
+    } else if ("no".equals(value) || "private".equals(value) || "dismount".equals(value) || "destination".equals(value) || "use_sidepath".equals(value) || 
+    "use_cycleway".equals(value)) {
+        return "no";
+    }
+    return null;
   }
 
   /** Returns a value for {@code surface} tag constrained to a small set of known values from raw OSM data. */
@@ -594,8 +608,8 @@ public class Transportation implements
         .setAttrWithMinzoom(Fields.EXPRESSWAY, element.expressway() && !"motorway".equals(highway) ? 1 : null, 8)
         // z9+
         .setAttrWithMinSize(Fields.LAYER, nullIfLong(element.layer(), 0), 4, 9, 12)
-        .setAttrWithMinzoom(Fields.BICYCLE, nullIfEmpty(element.bicycle()), 9)
-        .setAttrWithMinzoom(Fields.FOOT, nullIfEmpty(element.foot()), 9)
+        .setAttrWithMinzoom(Fields.BICYCLE, getAccess(element.bicycle()), 9)
+        .setAttrWithMinzoom(Fields.FOOT, getAccess(element.foot()), 9)
         .setAttrWithMinzoom(Fields.HORSE, nullIfEmpty(element.horse()), 9)
         .setAttrWithMinzoom(Fields.MTB_SCALE, mtbScaleCat(element.mtbScale()), 9)
         .setAttrWithMinzoom(Fields.ACCESS, access(element.access()), 9)
