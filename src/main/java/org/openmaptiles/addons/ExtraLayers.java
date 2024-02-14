@@ -17,7 +17,8 @@ public class ExtraLayers {
       new LanduseExt(),
       new BarrierExt(),
       new PoiExt(),
-      new RouteExt()
+      new RouteExt(),
+      new PisteExt()
     );
   }
 }
