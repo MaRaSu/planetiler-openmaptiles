@@ -359,6 +359,20 @@ public class Transportation implements
     return null;
   }
 
+  private static String getTrailVisibility(Object valueObj) {
+    if (valueObj == null) {
+      return null;
+    }
+    String value = String.valueOf(valueObj);
+    if (value == null) return null;     
+    if ("good".equals(value) || "excellent".equals(value)) {
+      return "good";
+    } else if ("no".equals(value) || "horrible".equals(value) || "bad".equals(value) || "intermediate".equals(value)) {
+      return "bad";
+    }
+    return null;
+  }
+
   /** Returns a value for {@code surface} tag constrained to a small set of known values from raw OSM data. */
   private static String surface(String value) {
     return value == null ? null : SURFACE_PAVED_VALUES.contains(value) ? FieldValues.SURFACE_PAVED :
@@ -624,7 +638,7 @@ public class Transportation implements
         .setAttrWithMinzoom("surface_raw", nullIfEmpty(element.surface()), 9)
         .setAttrWithMinzoom("width", element.source().getTag("width"), 12)
         .setAttrWithMinzoom("width_cat", widthCat(element.source().getTag("width")), 12)
-        .setAttrWithMinzoom("trail_visibility", element.source().getTag("trail_visibility"), 12)
+        .setAttrWithMinzoom("trail_visibility", getTrailVisibility(element.source().getTag("trail_visibility")), 12)
         .setAttrWithMinzoom("obstacle", element.source().getTag("obstacle"), 12)
         .setAttrWithMinzoom("mtb_winter", element.source().getTag("mtb:winter"), 12)
         .setAttrWithMinzoom("cycleway:surface", element.source().getTag("cycleway:surface"), 12)
