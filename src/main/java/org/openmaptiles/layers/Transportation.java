@@ -259,7 +259,7 @@ public class Transportation implements
             }
         }
     }
-    return "no";
+    return null;
   }
 
   private static String getCyclewayRight(Tables.OsmHighwayLinestring element) {
@@ -273,7 +273,7 @@ public class Transportation implements
               }
           }
       }
-      return "no";
+      return null;
   }
 
   private static String getFootwayLeft(Tables.OsmHighwayLinestring element) {
@@ -288,7 +288,7 @@ public class Transportation implements
       if ((hasSidewalk || hasBothSidewalk || hasLeftSidewalk) && noBicycle && noBothBicycle && noLeftBicycle) {
           return "yes";
       }
-      return "no";
+      return null;
   }
 
   private static String getFootwayRight(Tables.OsmHighwayLinestring element) {
@@ -303,7 +303,7 @@ public class Transportation implements
       if ((hasSidewalk || hasBothSidewalk || hasRightSidewalk) && noBicycle && noBothBicycle && noRightBicycle) {
           return "yes";
       }
-      return "no";
+      return null;
   }
 
   private static boolean checkValues(Tables.OsmHighwayLinestring element, String key, String[] values) {

@@ -92,7 +92,8 @@ public class PoiExt implements Layer, OpenMapTilesProfile.OsmAllProcessor {
            .setAttr("class", clazz);
     if (subclass != null && !subclass.isEmpty()) {
         finalFeature.setAttr("subclass", subclass)
-          .setAttr("access", feature.getTag("access"));
+          .setAttr("access", feature.getTag("access"))
+          .setAttr("name", feature.getTag("name"));
         
     }
   }
