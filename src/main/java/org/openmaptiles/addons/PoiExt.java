@@ -18,29 +18,37 @@ public class PoiExt implements Layer, OpenMapTilesProfile.OsmAllProcessor {
 
   @Override
   public void processAllOsm(SourceFeature feature, FeatureCollector features) {
-      Map<String, String> tagToClassSubclassMap = getTagToClassSubclassMap();
-      String initialMethod = determineInitialMethod(feature);
+    // Handle "fixme" tag specifically
+    if (feature.hasTag("fixme")) {
+        String initialMethod = determineInitialMethod(feature);
+        String subclassValue = (String) feature.getTag("fixme");
+        addFeature(features, initialMethod, "fixme", subclassValue, feature);
+        return; // Skip further processing if "fixme" is handled
+    }
 
-      for (Map.Entry<String, String> entry : tagToClassSubclassMap.entrySet()) {
-          String[] tags = entry.getKey().split(",");
-          String[] classSubclass = entry.getValue().split(",");
+    Map<String, String> tagToClassSubclassMap = getTagToClassSubclassMap();
+    String initialMethod = determineInitialMethod(feature);
 
-          boolean matchesAllTags = true;
-          for (String tag : tags) {
-              String[] keyValue = tag.split("=");
-              if (!feature.hasTag(keyValue[0], keyValue.length > 1 ? keyValue[1] : null)) {
-                  matchesAllTags = false;
-                  break;
-              }
-          }
+    for (Map.Entry<String, String> entry : tagToClassSubclassMap.entrySet()) {
+        String[] tags = entry.getKey().split(",");
+        String[] classSubclass = entry.getValue().split(",");
 
-          if (matchesAllTags) {
-              String clazz = classSubclass[0];
-              String subclass = classSubclass.length > 1 ? classSubclass[1] : null;
-              addFeature(features, initialMethod, clazz, subclass, feature);
-              break; // Assuming one tag match per feature, remove if multiple matches should be processed
-          }
-      }
+        boolean matchesAllTags = true;
+        for (String tag : tags) {
+            String[] keyValue = tag.split("=");
+            if (!feature.hasTag(keyValue[0], keyValue.length > 1 ? keyValue[1] : null)) {
+                matchesAllTags = false;
+                break;
+            }
+        }
+
+        if (matchesAllTags) {
+            String clazz = classSubclass[0];
+            String subclass = classSubclass.length > 1 ? classSubclass[1] : null;
+            addFeature(features, initialMethod, clazz, subclass, feature);
+            break; // Assuming one tag match per feature, remove if multiple matches should be processed
+        }
+    }
   }
 
   private Map<String, String> getTagToClassSubclassMap() {
@@ -65,6 +73,7 @@ public class PoiExt implements Layer, OpenMapTilesProfile.OsmAllProcessor {
       tagToClassSubclass.put("natural=cave_entrance", "natural,cave_entrance");
       tagToClassSubclass.put("natural=peak", "natural,peak");
       tagToClassSubclass.put("obstacle=fallen_tree", "obstacle,fallen_tree");
+      tagToClassSubclass.put("noexit=yes", "noexit,yes");
       return tagToClassSubclass;
   }
 

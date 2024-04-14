@@ -355,6 +355,8 @@ public class Transportation implements
     } else if ("no".equals(value) || "private".equals(value) || "dismount".equals(value) || "destination".equals(value) || "use_sidepath".equals(value) || 
     "use_cycleway".equals(value)) {
         return "no";
+    } else if ("discouraged".equals(value)) {
+        return "discouraged";
     }
     return null;
   }
@@ -381,7 +383,7 @@ public class Transportation implements
 
   /** Returns a value for {@code access} tag constrained to a small set of known values from raw OSM data. */
   private static String access(String value) {
-    return value == null ? null : ACCESS_NO_VALUES.contains(value) ? "no" : null;
+    return value == null ? null : ACCESS_NO_VALUES.contains(value) ? "no" : "discouraged".equals(value) ? "discouraged" : null;
   }
 
   /** Returns a value for {@code service} tag constrained to a small set of known values from raw OSM data. */
