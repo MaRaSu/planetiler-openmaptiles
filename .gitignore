@@ -20,6 +20,9 @@ target/
 .settings
 bin/
 
+# vscode
+.vscode
+
 data
 
 *.pmtiles

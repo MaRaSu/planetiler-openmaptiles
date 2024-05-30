@@ -137,7 +137,7 @@ public class Transportation implements
     "paving_stones", "sett", "unhewn_cobblestone", "wood", "grade1"
   );
   private static final Set<String> ACCESS_NO_VALUES = Set.of(
-    "private", "no", "destination", "military", "permit", "delivery", "customers"
+    "private", "no", "military", "permit", "delivery", "customers"
   );
   private static final Set<RouteNetwork> TRUNK_AS_MOTORWAY_BY_NETWORK = Set.of(
     RouteNetwork.CA_TRANSCANADA,
@@ -351,8 +351,8 @@ public class Transportation implements
     } 
     if ("yes".equals(value) || "designated".equals(value) || "permissive".equals(value)) {
         return "yes";
-        // no if "no" or "private" or "dismount" or "destination" or "use_sidepath" or "use_cycleway" or "military" or "permit" or "delivery" or "customers"
-    } else if ("no".equals(value) || "private".equals(value) || "dismount".equals(value) || "destination".equals(value) || "use_sidepath".equals(value) || 
+        // no if "no" or "private" or "dismount" or "use_sidepath" or "use_cycleway" or "military" or "permit" or "delivery" or "customers"
+    } else if ("no".equals(value) || "private".equals(value) || "dismount".equals(value) || "use_sidepath".equals(value) || 
     "use_cycleway".equals(value)) {
         return "no";
     } else if ("discouraged".equals(value)) {
