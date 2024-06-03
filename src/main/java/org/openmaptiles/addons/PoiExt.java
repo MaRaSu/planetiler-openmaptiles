@@ -56,6 +56,7 @@ public class PoiExt implements Layer, OpenMapTilesProfile.OsmAllProcessor {
       // Key is tag combination; value is "class,subclass"
       tagToClassSubclass.put("man_made=tower,tower:type=observation", "tower,observation");
       tagToClassSubclass.put("amenity=shelter,shelter_type=lean_to", "shelter,lean_to");
+       tagToClassSubclass.put("amenity=shelter,shelter_type=basic_hut", "shelter,lean_to");
       tagToClassSubclass.put("amenity=shelter,shelter_type=picnic_shelter", "shelter,picnic_shelter");
       tagToClassSubclass.put("amenity=shelter,shelter_type=weather_shelter", "shelter,weather_shelter");
       tagToClassSubclass.put("amenity=water_point", "water,water_point");
