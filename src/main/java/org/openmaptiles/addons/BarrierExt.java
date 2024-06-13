@@ -20,7 +20,8 @@ public class BarrierExt implements Layer, OpenMapTilesProfile.OsmAllProcessor {
       features.line(LAYER_NAME)
           .setBufferPixels(4)
           .setMinZoom(12)
-          .setAttr("class", feature.getTag("barrier"));
+          .setAttr("class", feature.getTag("barrier"))
+          .setAttr("access", feature.getTag("access"));
     }
   }
 }
