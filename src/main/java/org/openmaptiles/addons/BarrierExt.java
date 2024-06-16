@@ -16,12 +16,20 @@ public class BarrierExt implements Layer, OpenMapTilesProfile.OsmAllProcessor {
 
   @Override
   public void processAllOsm(SourceFeature feature, FeatureCollector features) {
-    if (feature.canBeLine() && feature.hasTag("barrier")) {
-      features.line(LAYER_NAME)
-          .setBufferPixels(4)
-          .setMinZoom(12)
-          .setAttr("class", feature.getTag("barrier"))
-          .setAttr("access", feature.getTag("access"));
+    if (feature.hasTag("barrier")) {
+      if (feature.canBeLine()) {
+        features.line(LAYER_NAME)
+            .setBufferPixels(4)
+            .setMinZoom(12)
+            .setAttr("class", feature.getTag("barrier"))
+            .setAttr("access", feature.getTag("access"));
+      } else if (!(feature.canBeLine() || feature.canBePolygon())) {
+        features.point(LAYER_NAME)
+            .setBufferPixels(4)
+            .setMinZoom(12)
+            .setAttr("class", feature.getTag("barrier"))
+            .setAttr("access", feature.getTag("access"));
+      }
     }
   }
 }
