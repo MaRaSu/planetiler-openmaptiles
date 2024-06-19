@@ -25,7 +25,15 @@ public class BarrierExt implements Layer, OpenMapTilesProfile.OsmAllProcessor {
     }
     
     String value = String.valueOf(accessObj);
-    return value == null ? null : ACCESS_NO_VALUES.contains(value) ? "no" : "discouraged".equals(value) ? "discouraged" : null;
+    if ("yes".equals(value) || "designated".equals(value) || "permissive".equals(value)) {
+      return "yes";
+    // no if "no" or "private" or "dismount" or "use_sidepath" or "use_cycleway" or "military" or "permit" or "delivery" or "customers"
+    } else if (ACCESS_NO_VALUES.contains(value)) {
+        return "no";
+    } else if ("discouraged".equals(value)) {
+        return "discouraged";
+    }
+    return null;
   }
 
   private static String getAccess(Object accessObj) {
