@@ -85,6 +85,8 @@ public class PoiExt implements Layer, OpenMapTilesProfile.OsmAllProcessor {
       tagToClassSubclass.put("tourism=chalet", "tourism,chalet");
       tagToClassSubclass.put("tourism=camp_pitch", "tourism,camp_pitch");
       tagToClassSubclass.put("tourism=camp_site", "tourism,camp_site");
+      tagToClassSubclass.put("tourism=picnic_site", "tourism,picnic_site");
+      tagToClassSubclass.put("tourism=artwork", "tourism,artwork");
       tagToClassSubclass.put("leisure=swimming_area", "leisure,swimming_area");
       tagToClassSubclass.put("leisure=firepit", "leisure,firepit");
       tagToClassSubclass.put("leisure=picnic_table", "leisure,picnic_table");
@@ -107,6 +109,7 @@ public class PoiExt implements Layer, OpenMapTilesProfile.OsmAllProcessor {
       tagToClassSubclass.put("shop=mall", "shop,mall");
       tagToClassSubclass.put("shop=pastry", "shop,pastry");
       tagToClassSubclass.put("shop=supermarket", "shop,supermarket");
+       tagToClassSubclass.put("ford=yes", "ford,yes");
 
       return tagToClassSubclass;
   }

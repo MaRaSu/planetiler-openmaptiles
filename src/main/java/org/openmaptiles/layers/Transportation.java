@@ -345,6 +345,17 @@ public class Transportation implements
     return null;
   }
 
+   private static Long getFord(Tables.OsmHighwayLinestring element) {
+    Object valueObj = element.source().getTag("ford");
+    if (valueObj instanceof String) {
+        String value = (String) valueObj;
+        if ("yes".equals(value)) {
+            return 1L;
+        }
+    }
+    return null;
+  }
+
   private static String getAccess(String value) {
     if (value == null) {
       return null;
@@ -657,6 +668,7 @@ public class Transportation implements
         .setAttrWithMinzoom("footway_right", getFootwayRight(element), 12)
         .setAttrWithMinzoom("mtb:name", element.source().getTag("mtb:name"), 12)
         .setAttrWithMinzoom("noexit", getNoExit(element), 12)
+        .setAttrWithMinzoom("ford", getFord(element), 12)
         .setMinPixelSize(0) // merge during post-processing, then limit by size
         .setSortKey(element.zOrder())
         .setMinZoom(minzoom);

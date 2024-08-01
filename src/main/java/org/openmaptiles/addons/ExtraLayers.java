@@ -18,7 +18,8 @@ public class ExtraLayers {
       new BarrierExt(),
       new PoiExt(),
       new RouteExt(),
-      new PisteExt()
+      new PisteExt(),
+      new ParkingExt()
     );
   }
 }
