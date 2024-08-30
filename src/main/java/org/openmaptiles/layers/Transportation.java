@@ -57,6 +57,7 @@ import com.onthegomap.planetiler.util.MemoryEstimator;
 import com.onthegomap.planetiler.util.Parse;
 import com.onthegomap.planetiler.util.Translations;
 import com.onthegomap.planetiler.util.ZoomFunction;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -211,13 +212,13 @@ public class Transportation implements
     }
     String widthStr = String.valueOf(value);
   
-    try {
-      Float width = Float.parseFloat(widthStr);
-      if (width < 0.6) {
+    try { 
+      BigDecimal width = new BigDecimal(widthStr);
+      if (width.compareTo(new BigDecimal("0.6")) < 0) {
           return "a";
-      } else if (width < 0.9) {
+      } else if (width.compareTo(new BigDecimal("0.9")) < 0) {
           return "b";
-      } else if (width < 1.8) {
+      } else if (width.compareTo(new BigDecimal("1.8")) < 0) {
           return "c";
       } else {
           return "d";
