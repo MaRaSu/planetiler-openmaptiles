@@ -352,6 +352,8 @@ public class Transportation implements
         String value = (String) valueObj;
         if ("yes".equals(value)) {
             return 1L;
+        } else if ("no".equals(value)) {
+            return 0L;
         }
     }
     return null;
