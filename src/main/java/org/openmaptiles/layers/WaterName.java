@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2021, MapTiler.com & OpenMapTiles contributors.
+Copyright (c) 2024, MapTiler.com & OpenMapTiles contributors.
 All rights reserved.
 
 Code license: BSD 3-Clause License
@@ -83,11 +83,16 @@ public class WaterName implements
 
   private static final Logger LOGGER = LoggerFactory.getLogger(WaterName.class);
   private static final Set<String> SEA_OR_OCEAN_PLACE = Set.of("sea", "ocean");
+  private static final double IMPORTANT_MARINE_REGIONS_JOIN_DISTANCE =
+    GeoUtils.metersToPixelAtEquator(0, 50_000) / 256d;
+  private static final int MINZOOM_BAY = 9;
+  private static final int MINZOOM_LAKE = 3;
+  private static final int MINZOOM_SEA_AND_OCEAN = 0;
   private final Translations translations;
   // need to synchronize updates from multiple threads
   private final LongObjectMap<Geometry> lakeCenterlines = Hppc.newLongObjectHashMap();
   // may be updated concurrently by multiple threads
-  private final ConcurrentSkipListMap<String, Integer> importantMarinePoints = new ConcurrentSkipListMap<>();
+  private final ConcurrentSkipListMap<String, NaturalEarthRegion> importantMarinePoints = new ConcurrentSkipListMap<>();
   private final Stats stats;
 
   public WaterName(Translations translations, PlanetilerConfig config, Stats stats) {
@@ -133,9 +138,47 @@ public class WaterName implements
       Integer scalerank = Parse.parseIntOrNull(feature.getTag("scalerank"));
       if (name != null && scalerank != null) {
         name = name.replaceAll("\\s+", " ").trim().toLowerCase();
-        importantMarinePoints.put(name, scalerank);
+        try {
+          importantMarinePoints.put(name, new NaturalEarthRegion(feature.worldGeometry(), scalerank));
+        } catch (GeometryException e) {
+          e.log(stats, "ne_marine_polys",
+            "Error getting geometry for natural earth feature " + table + " " + feature.getTag("ogc_fid"));
+        }
       }
     }
+  }
+
+  private NaturalEarthRegion getImportantMarineRegion(Tables.OsmMarinePoint element) {
+    var source = element.source();
+    String name = element.name().toLowerCase();
+    NaturalEarthRegion result = importantMarinePoints.get(name);
+    if (result == null) {
+      result = importantMarinePoints.get(source.getString("name:en", "").toLowerCase());
+    }
+    if (result == null) {
+      result = importantMarinePoints.get(source.getString("name:es", "").toLowerCase());
+    }
+    if (result == null) {
+      Map.Entry<String, NaturalEarthRegion> next = importantMarinePoints.ceilingEntry(name);
+      if (next != null && next.getKey().startsWith(name)) {
+        result = next.getValue();
+      }
+    }
+
+    if (result == null) {
+      return null;
+    }
+    try {
+      double distance = result.geometry.distance(source.worldGeometry());
+      if (distance <= IMPORTANT_MARINE_REGIONS_JOIN_DISTANCE) {
+        return result;
+      }
+    } catch (GeometryException e) {
+      e.log(stats, "osm_marine_point",
+        "Error getting geometry for OSM marine point " + element.source().id());
+    }
+
+    return null;
   }
 
   @Override
@@ -148,29 +191,14 @@ public class WaterName implements
       var source = element.source();
       // use name from OSM, but get min zoom from natural earth based on fuzzy name match...
       Integer rank = Parse.parseIntOrNull(source.getTag("rank"));
-      String name = element.name().toLowerCase();
-      Integer nerank;
-      if ((nerank = importantMarinePoints.get(name)) != null) {
-        rank = nerank;
-      } else if ((nerank = importantMarinePoints.get(source.getString("name:en", "").toLowerCase())) != null) {
-        rank = nerank;
-      } else if ((nerank = importantMarinePoints.get(source.getString("name:es", "").toLowerCase())) != null) {
-        rank = nerank;
-      } else {
-        Map.Entry<String, Integer> next = importantMarinePoints.ceilingEntry(name);
-        if (next != null && next.getKey().startsWith(name)) {
-          rank = next.getValue();
-        }
+      NaturalEarthRegion neRegion = getImportantMarineRegion(element);
+      if (neRegion != null) {
+        rank = neRegion.scalerank;
       }
       int minZoom;
       if ("ocean".equals(element.place())) {
         minZoom = 0;
       } else if (rank != null) {
-        // FIXME: While this looks like matching properly stuff in https://github.com/openmaptiles/openmaptiles/pull/1457/files#diff-201daa1c61c99073fe3280d440c9feca5ed2236b251ad454caa14cc203f952d1R74 ,
-        // it includes not just https://www.openstreetmap.org/relation/13360255 but also https://www.openstreetmap.org/node/1385157299 (and some others).
-        // Hence check how that OpenMapTiles code works for "James Bay" and:
-        // a) if same as here then, fix there and then here
-        // b) if OK (while here NOK), fix only here
         minZoom = rank;
       } else if ("bay".equals(element.natural())) {
         minZoom = 13;
@@ -190,8 +218,7 @@ public class WaterName implements
   public void process(Tables.OsmWaterPolygon element, FeatureCollector features) {
     if (nullIfEmpty(element.name()) != null) {
       Geometry centerlineGeometry = lakeCenterlines.get(element.source().id());
-      FeatureCollector.Feature feature;
-      int minzoom = 9;
+      int minzoomCL = MINZOOM_BAY;
       String place = element.place();
       String clazz;
       if ("bay".equals(element.natural())) {
@@ -200,24 +227,43 @@ public class WaterName implements
         clazz = FieldValues.CLASS_SEA;
       } else {
         clazz = FieldValues.CLASS_LAKE;
-        minzoom = 3;
+        minzoomCL = MINZOOM_LAKE;
       }
       if (centerlineGeometry != null) {
-        // prefer lake centerline if it exists
-        feature = features.geometry(LAYER_NAME, centerlineGeometry)
-          .setMinPixelSizeBelowZoom(13, 6d * element.name().length());
-      } else {
-        // otherwise just use a label point inside the lake
-        feature = features.pointOnSurface(LAYER_NAME)
-          .setMinZoom(place != null && SEA_OR_OCEAN_PLACE.contains(place) ? 0 : 3)
-          .setMinPixelSize(128); // tiles are 256x256, so 128x128 is 1/4 of a tile
+        // prefer lake centerline if it exists, but point will be also used if minzoom below 9 is calculated from area
+        // note: Here we're diverging from OpenMapTiles: For bays with minzoom (based on area) point is used between
+        // minzoom and Z8 and for Z9+ centerline is used, while OpenMaptiles sticks with points.
+        setupOsmWaterPolygonFeature(
+          element, features.geometry(LAYER_NAME, centerlineGeometry), clazz, minzoomCL)
+            .setMinPixelSizeBelowZoom(13, 6d * element.name().length());
       }
-      feature
-        .setAttr(Fields.CLASS, clazz)
-        .setBufferPixels(BUFFER_SIZE)
-        .putAttrs(OmtLanguageUtils.getNames(element.source().tags(), translations))
-        .setAttr(Fields.INTERMITTENT, element.isIntermittent() ? 1 : 0)
-        .setMinZoom(minzoom);
+
+      int minzoom = place != null && SEA_OR_OCEAN_PLACE.contains(place) ? MINZOOM_SEA_AND_OCEAN : MINZOOM_LAKE;
+      if (centerlineGeometry == null || minzoom < minzoomCL) {
+        // use a label point inside the lake but ...
+        // ... if centerline already created, adjust maxzoom here to make sure we're not having both at same zoom level
+        int maxzoom = centerlineGeometry != null ? minzoomCL - 1 : 14;
+        setupOsmWaterPolygonFeature(element, features.pointOnSurface(LAYER_NAME), clazz, minzoom)
+          .setMaxZoom(maxzoom)
+          // Show a label if a water feature covers at least 1/4 of a tile or z14+
+          .setMinPixelSizeBelowZoom(13, 128);
+      }
     }
   }
+
+  private FeatureCollector.Feature setupOsmWaterPolygonFeature(Tables.OsmWaterPolygon element,
+    FeatureCollector.Feature output, String clazz, int minzoom) {
+    output
+      .setAttr(Fields.CLASS, clazz)
+      .setBufferPixels(BUFFER_SIZE)
+      .putAttrs(OmtLanguageUtils.getNames(element.source().tags(), translations))
+      .setAttr(Fields.INTERMITTENT, element.isIntermittent() ? 1 : 0)
+      .setMinZoom(minzoom);
+    return output;
+  }
+
+  private record NaturalEarthRegion(
+    Geometry geometry,
+    int scalerank
+  ) {}
 }

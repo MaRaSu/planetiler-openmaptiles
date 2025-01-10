@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2021, MapTiler.com & OpenMapTiles contributors.
+Copyright (c) 2024, MapTiler.com & OpenMapTiles contributors.
 All rights reserved.
 
 Code license: BSD 3-Clause License
@@ -81,7 +81,7 @@ public class TransportationName implements
   Tables.OsmHighwayLinestring.Handler,
   Tables.OsmAerialwayLinestring.Handler,
   Tables.OsmShipwayLinestring.Handler,
-  OpenMapTilesProfile.FeaturePostProcessor,
+  ForwardingProfile.LayerPostProcessor,
   OpenMapTilesProfile.IgnoreWikidata,
   ForwardingProfile.OsmNodePreprocessor,
   ForwardingProfile.OsmWayPreprocessor {
@@ -269,12 +269,20 @@ public class TransportationName implements
       .setSortKey(element.zOrder())
       .setMinZoom(minzoom);
 
-    // populate route_1, route_2, ... route_n tags and remove duplicates
+    // populate route_1_<something>, route_2_<something>, ... route_n_<something> tags and remove duplicates
     Set<String> routes = new HashSet<>();
     for (var route : relations) {
-      String routeString = route.network() + "=" + coalesce(route.ref(), "");
+      String routeString = route.network() + "=" +
+        coalesce(route.ref(), "") + "=" +
+        coalesce(route.name(), "") + "=" +
+        coalesce(route.colour(), "");
       if (routes.add(routeString)) {
-        feature.setAttr("route_" + routes.size(), routeString);
+        String keyPrefix = "route_" + routes.size() + "_";
+
+        feature.setAttr(keyPrefix + "network", route.network());
+        feature.setAttr(keyPrefix + "ref", nullIfEmpty(route.ref()));
+        feature.setAttr(keyPrefix + "name", route.name());
+        feature.setAttr(keyPrefix + "colour", route.colour());
       }
     }
 
@@ -349,8 +357,8 @@ public class TransportationName implements
     if (limitMerge) {
       // remove temp keys that were just used to improve line merging
       for (var feature : result) {
-        feature.attrs().remove(LINK_TEMP_KEY);
-        feature.attrs().remove(RELATION_ID_TEMP_KEY);
+        feature.tags().remove(LINK_TEMP_KEY);
+        feature.tags().remove(RELATION_ID_TEMP_KEY);
       }
     }
     return result;

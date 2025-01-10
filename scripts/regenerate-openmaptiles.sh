@@ -4,7 +4,7 @@ set -o errexit
 set -o pipefail
 set -o nounset
 
-# TODO: change to "v3.15" once that is released
+# TODO: change to "v3.16" once that is released
 TAG="${1:-"master"}"
 echo "tag=${TAG}"
 

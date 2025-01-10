@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2021, MapTiler.com & OpenMapTiles contributors.
+Copyright (c) 2024, MapTiler.com & OpenMapTiles contributors.
 All rights reserved.
 
 Code license: BSD 3-Clause License
@@ -80,8 +80,8 @@ public class Poi implements
   OpenMapTilesSchema.Poi,
   Tables.OsmPoiPoint.Handler,
   Tables.OsmPoiPolygon.Handler,
-  ForwardingProfile.FeaturePostProcessor,
-  OpenMapTilesProfile.FinishHandler {
+  ForwardingProfile.LayerPostProcessor,
+  ForwardingProfile.FinishHandler {
 
   /*
    * process() creates the raw POI feature from OSM elements and postProcess()
@@ -139,6 +139,11 @@ public class Poi implements
   }
 
   private String poiClass(String subclass, String mappingKey) {
+    // Special case subclass collision between office=university and amenity=university
+    if ("amenity".equals(mappingKey) && "university".equals(subclass)) {
+      return FieldValues.CLASS_COLLEGE;
+    }
+
     subclass = coalesce(subclass, "");
     return classMapping.getOrElse(Map.of(
       "subclass", subclass,
@@ -176,7 +181,8 @@ public class Poi implements
   private void processAggStop(Tables.OsmPoiPoint element, FeatureCollector.Factory featureCollectors,
     Consumer<FeatureCollector.Feature> emit, Integer aggStop) {
     try {
-      var features = featureCollectors.get(SimpleFeature.fromWorldGeometry(element.source().worldGeometry()));
+      var features =
+        featureCollectors.get(SimpleFeature.fromWorldGeometry(element.source().worldGeometry(), element.source().id()));
       setupPoiFeature(element, features.point(LAYER_NAME), aggStop);
       for (var feature : features) {
         emit.accept(feature);
@@ -209,7 +215,6 @@ public class Poi implements
           processAggStop(aggStopSet.getFirst(), featureCollectors, emit, 1);
           continue;
         }
-
         Tables.OsmPoiPoint nearest = null;
         try {
           // find most important stops based on subclass
@@ -228,7 +233,8 @@ public class Poi implements
           double minDistance = Double.MAX_VALUE;
           for (var aggStop : topAggStops) {
             double distance = aggStopCentroid.distance(aggStop.source().worldGeometry());
-            if (distance < minDistance) {
+            if (distance < minDistance || nearest == null ||
+              (distance == minDistance && aggStop.source().id() < nearest.source().id())) {
               minDistance = distance;
               nearest = aggStop;
             }
@@ -325,8 +331,8 @@ public class Poi implements
     for (VectorTile.Feature feature : items) {
       int gridrank = groupCounts.getOrDefault(feature.group(), 1);
       groupCounts.put(feature.group(), gridrank + 1);
-      if (!feature.attrs().containsKey(Fields.RANK)) {
-        feature.attrs().put(Fields.RANK, gridrank);
+      if (!feature.tags().containsKey(Fields.RANK)) {
+        feature.tags().put(Fields.RANK, gridrank);
       }
     }
     return items;
