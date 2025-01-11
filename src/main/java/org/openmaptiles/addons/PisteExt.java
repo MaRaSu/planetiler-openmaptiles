@@ -75,6 +75,10 @@ public class PisteExt implements Layer, OpenMapTilesProfile.OsmAllProcessor {
 					.setAttr("lanes", getLanes(feature))
 					.setAttr("name", getName(feature))
 					.setAttr("bridge", feature.getTag("bridge"))
+					.setAttr("tunnel", feature.getTag("tunnel"))
+					.setAttr("mtb_winter", feature.getTag("mtb:winter"))
+					.setAttr("foot_winter", feature.getTag("foot:winter"))
+					.setAttr("bicycle_winter", feature.getTag("bicycle:winter"))
 					;
     }
   }
