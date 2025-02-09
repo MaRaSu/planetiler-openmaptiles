@@ -213,7 +213,7 @@ public class Transportation implements
 
   private static float width(Object value) {
     if (value == null) {
-        return 0.0f; // or throw an exception
+      return 0.0f; // or throw an exception
     }
     String widthStr = String.valueOf(value);
     return Float.parseFloat(widthStr);
@@ -221,20 +221,20 @@ public class Transportation implements
 
   private static String widthCat(Object value) {
     if (value == null) {
-        return null;
+      return null;
     }
     String widthStr = String.valueOf(value);
-  
-    try { 
+
+    try {
       BigDecimal width = new BigDecimal(widthStr);
       if (width.compareTo(new BigDecimal("0.6")) < 0) {
-          return "a";
+        return "a";
       } else if (width.compareTo(new BigDecimal("0.9")) < 0) {
-          return "b";
+        return "b";
       } else if (width.compareTo(new BigDecimal("1.8")) < 0) {
-          return "c";
+        return "c";
       } else {
-          return "d";
+        return "d";
       }
     } catch (NumberFormatException e) {
       return null;
@@ -243,107 +243,116 @@ public class Transportation implements
 
   private static String mtbScaleCat(String mtbScale) {
     if (mtbScale == null) {
-        return null;
+      return null;
     }
     try {
-    if ("-1".equals(mtbScale) || "0".equals(mtbScale) || "0-".equals(mtbScale)) {
+      if ("-1".equals(mtbScale) || "0".equals(mtbScale) || "0-".equals(mtbScale)) {
         return mtbScale;
-    }
+      }
 
-    // Check if mtbScale is a digit (0 to 6) or a digit followed by + or -
-    if (mtbScale.matches("[0-6]([+-])?")) {
+      // Check if mtbScale is a digit (0 to 6) or a digit followed by + or -
+      if (mtbScale.matches("[0-6]([+-])?")) {
         return mtbScale.replaceAll("[+-]", ""); // Remove + or - if present and return the number part
-    }
+      }
 
-    return null;
-  
+      return null;
+
     } catch (NumberFormatException e) {
       return null;
     }
-  } 
+  }
 
   private static String getCyclewayLeft(Tables.OsmHighwayLinestring element) {
-    String[] tagsToCheck = {"cycleway:both", "cycleway:left", "cycleway", "sidewalk:both:bicycle", "sidewalk:left:bicycle"};
+    String[] tagsToCheck =
+      {"cycleway:both", "cycleway:left", "cycleway", "sidewalk:both:bicycle", "sidewalk:left:bicycle"};
     for (String tag : tagsToCheck) {
-        Object valueObj = element.source().getTag(tag);
-        if (valueObj instanceof String) {
-            String value = (String) valueObj;
-            if ("yes".equals(value) || "track".equals(value) || "lane".equals(value)) {
-                return "yes";
-            }
+      Object valueObj = element.source().getTag(tag);
+      if (valueObj instanceof String) {
+        String value = (String) valueObj;
+        if ("yes".equals(value) || "track".equals(value) || "lane".equals(value)) {
+          return "yes";
         }
+      }
     }
     return null;
   }
 
   private static String getCyclewayRight(Tables.OsmHighwayLinestring element) {
-      String[] tagsToCheck = {"cycleway:both", "cycleway:right", "cycleway", "sidewalk:both:bicycle", "sidewalk:right:bicycle"};
-      for (String tag : tagsToCheck) {
-          Object valueObj = element.source().getTag(tag);
-          if (valueObj instanceof String) {
-              String value = (String) valueObj;
-              if ("yes".equals(value) || "track".equals(value) || "lane".equals(value)) {
-                  return "yes";
-              }
-          }
+    String[] tagsToCheck =
+      {"cycleway:both", "cycleway:right", "cycleway", "sidewalk:both:bicycle", "sidewalk:right:bicycle"};
+    for (String tag : tagsToCheck) {
+      Object valueObj = element.source().getTag(tag);
+      if (valueObj instanceof String) {
+        String value = (String) valueObj;
+        if ("yes".equals(value) || "track".equals(value) || "lane".equals(value)) {
+          return "yes";
+        }
       }
-      return null;
+    }
+    return null;
   }
 
   private static String getFootwayLeft(Tables.OsmHighwayLinestring element) {
-      boolean hasSidewalk = checkValues(element, "sidewalk", new String[]{"yes", "designated", "both", "lane", "left"});
-      boolean hasBothSidewalk = checkValues(element, "sidewalk:both", new String[]{"yes", "designated", "lane"});
-      boolean hasLeftSidewalk = checkValues(element, "sidewalk:left", new String[]{"yes", "designated", "lane"});
-      
-      boolean noBicycle = checkNotValuesOrNull(element, "sidewalk:bicycle", new String[]{"yes", "designated", "track", "lane"});
-      boolean noBothBicycle = checkNotValuesOrNull(element, "sidewalk:both:bicycle", new String[]{"yes", "designated", "track", "lane"});
-      boolean noLeftBicycle = checkNotValuesOrNull(element, "sidewalk:left:bicycle", new String[]{"yes", "designated", "track", "lane"});
+    boolean hasSidewalk = checkValues(element, "sidewalk", new String[]{"yes", "designated", "both", "lane", "left"});
+    boolean hasBothSidewalk = checkValues(element, "sidewalk:both", new String[]{"yes", "designated", "lane"});
+    boolean hasLeftSidewalk = checkValues(element, "sidewalk:left", new String[]{"yes", "designated", "lane"});
 
-      if ((hasSidewalk || hasBothSidewalk || hasLeftSidewalk) && noBicycle && noBothBicycle && noLeftBicycle) {
-          return "yes";
-      }
-      return null;
+    boolean noBicycle =
+      checkNotValuesOrNull(element, "sidewalk:bicycle", new String[]{"yes", "designated", "track", "lane"});
+    boolean noBothBicycle =
+      checkNotValuesOrNull(element, "sidewalk:both:bicycle", new String[]{"yes", "designated", "track", "lane"});
+    boolean noLeftBicycle =
+      checkNotValuesOrNull(element, "sidewalk:left:bicycle", new String[]{"yes", "designated", "track", "lane"});
+
+    if ((hasSidewalk || hasBothSidewalk || hasLeftSidewalk) && noBicycle && noBothBicycle && noLeftBicycle) {
+      return "yes";
+    }
+    return null;
   }
 
   private static String getFootwayRight(Tables.OsmHighwayLinestring element) {
-      boolean hasSidewalk = checkValues(element, "sidewalk", new String[]{"yes", "designated", "both", "lane", "right"});
-      boolean hasBothSidewalk = checkValues(element, "sidewalk:both", new String[]{"yes", "designated", "lane"});
-      boolean hasRightSidewalk = checkValues(element, "sidewalk:right", new String[]{"yes", "designated", "lane"});
-      
-      boolean noBicycle = checkNotValuesOrNull(element, "sidewalk:bicycle", new String[]{"yes", "designated", "track", "lane"});
-      boolean noBothBicycle = checkNotValuesOrNull(element, "sidewalk:both:bicycle", new String[]{"yes", "designated", "track", "lane"});
-      boolean noRightBicycle = checkNotValuesOrNull(element, "sidewalk:right:bicycle", new String[]{"yes", "designated", "track", "lane"});
+    boolean hasSidewalk = checkValues(element, "sidewalk", new String[]{"yes", "designated", "both", "lane", "right"});
+    boolean hasBothSidewalk = checkValues(element, "sidewalk:both", new String[]{"yes", "designated", "lane"});
+    boolean hasRightSidewalk = checkValues(element, "sidewalk:right", new String[]{"yes", "designated", "lane"});
 
-      if ((hasSidewalk || hasBothSidewalk || hasRightSidewalk) && noBicycle && noBothBicycle && noRightBicycle) {
-          return "yes";
-      }
-      return null;
+    boolean noBicycle =
+      checkNotValuesOrNull(element, "sidewalk:bicycle", new String[]{"yes", "designated", "track", "lane"});
+    boolean noBothBicycle =
+      checkNotValuesOrNull(element, "sidewalk:both:bicycle", new String[]{"yes", "designated", "track", "lane"});
+    boolean noRightBicycle =
+      checkNotValuesOrNull(element, "sidewalk:right:bicycle", new String[]{"yes", "designated", "track", "lane"});
+
+    if ((hasSidewalk || hasBothSidewalk || hasRightSidewalk) && noBicycle && noBothBicycle && noRightBicycle) {
+      return "yes";
+    }
+    return null;
   }
 
   private static boolean checkValues(Tables.OsmHighwayLinestring element, String key, String[] values) {
-      Object valueObj = element.source().getTag(key);
-      if (valueObj instanceof String) {
-          String value = (String) valueObj;
-          for (String v : values) {
-              if (v.equals(value)) {
-                  return true;
-              }
-          }
+    Object valueObj = element.source().getTag(key);
+    if (valueObj instanceof String) {
+      String value = (String) valueObj;
+      for (String v : values) {
+        if (v.equals(value)) {
+          return true;
+        }
       }
-      return false;
+    }
+    return false;
   }
 
   private static boolean checkNotValuesOrNull(Tables.OsmHighwayLinestring element, String key, String[] values) {
     Object valueObj = element.source().getTag(key);
-    if (valueObj == null) return true;
+    if (valueObj == null)
+      return true;
     if (valueObj instanceof String) {
-        String value = (String) valueObj;
-        for (String v : values) {
-            if (v.equals(value)) {
-                return false;
-            }
+      String value = (String) valueObj;
+      for (String v : values) {
+        if (v.equals(value)) {
+          return false;
         }
-        return true;
+      }
+      return true;
     }
     return false;
   }
@@ -351,23 +360,23 @@ public class Transportation implements
   private static Long getNoExit(Tables.OsmHighwayLinestring element) {
     Object valueObj = element.source().getTag("noexit");
     if (valueObj instanceof String) {
-        String value = (String) valueObj;
-        if ("yes".equals(value)) {
-            return 1L;
-        }
+      String value = (String) valueObj;
+      if ("yes".equals(value)) {
+        return 1L;
+      }
     }
     return null;
   }
 
-   private static Long getFord(Tables.OsmHighwayLinestring element) {
+  private static Long getFord(Tables.OsmHighwayLinestring element) {
     Object valueObj = element.source().getTag("ford");
     if (valueObj instanceof String) {
-        String value = (String) valueObj;
-        if ("yes".equals(value)) {
-            return 1L;
-        } else if ("no".equals(value)) {
-            return 0L;
-        }
+      String value = (String) valueObj;
+      if ("yes".equals(value)) {
+        return 1L;
+      } else if ("no".equals(value)) {
+        return 0L;
+      }
     }
     return null;
   }
@@ -375,15 +384,16 @@ public class Transportation implements
   private static String getAccess(String value) {
     if (value == null) {
       return null;
-    } 
+    }
     if ("yes".equals(value) || "designated".equals(value) || "permissive".equals(value)) {
-        return "yes";
-        // no if "no" or "private" or "dismount" or "use_sidepath" or "use_cycleway" or "military" or "permit" or "delivery" or "customers"
-    } else if ("no".equals(value) || "private".equals(value) || "dismount".equals(value) || "use_sidepath".equals(value) || 
-    "use_cycleway".equals(value)) {
-        return "no";
+      return "yes";
+      // no if "no" or "private" or "dismount" or "use_sidepath" or "use_cycleway" or "military" or "permit" or "delivery" or "customers"
+    } else if ("no".equals(value) || "private".equals(value) || "dismount".equals(value) ||
+      "use_sidepath".equals(value) ||
+      "use_cycleway".equals(value)) {
+      return "no";
     } else if ("discouraged".equals(value)) {
-        return "discouraged";
+      return "discouraged";
     }
     return null;
   }
@@ -393,7 +403,8 @@ public class Transportation implements
       return null;
     }
     String value = String.valueOf(valueObj);
-    if (value == null) return null;     
+    if (value == null)
+      return null;
     if ("good".equals(value) || "excellent".equals(value)) {
       return "good";
     } else if ("no".equals(value) || "horrible".equals(value) || "bad".equals(value) || "intermediate".equals(value)) {
@@ -410,7 +421,8 @@ public class Transportation implements
 
   /** Returns a value for {@code access} tag constrained to a small set of known values from raw OSM data. */
   private static String access(String value) {
-    return value == null ? null : ACCESS_NO_VALUES.contains(value) ? "no" : "discouraged".equals(value) ? "discouraged" : null;
+    return value == null ? null : ACCESS_NO_VALUES.contains(value) ? "no" :
+      "discouraged".equals(value) ? "discouraged" : null;
   }
 
   /** Returns a value for {@code service} tag constrained to a small set of known values from raw OSM data. */
@@ -754,8 +766,8 @@ public class Transportation implements
     int minzoom;
     if ("pier".equals(element.manMade())) {
       minzoom = 13;
-    //} else if (isResidentialOrUnclassified(highway)) {
-    //  minzoom = 9;
+      //} else if (isResidentialOrUnclassified(highway)) {
+      //  minzoom = 9;
     } else {
       String baseClass = highwayClass.replace("_construction", "");
       minzoom = switch (baseClass) {

@@ -93,7 +93,8 @@ public class Waterway implements
 
     "stream", 13,
     "drain", 13,
-    "ditch", 13
+    "ditch", 13,
+    "rapids", 13
   );
   private static final String TEMP_REL_ID_ADDR = "_relid";
 

@@ -114,7 +114,7 @@ public class MountainPeak implements
 
   @Override
   public void process(Tables.OsmPeakPoint element, FeatureCollector features) {
-    Double meters = Parse.meters(element.ele());
+    Double meters = Parse.meters(element.ele() != null ? element.ele() : element.source().getTag("elevation"));
     if (meters != null && Math.abs(meters) < 10_000) {
       var feature = features.point(LAYER_NAME)
         .setAttr(Fields.CLASS, element.source().getTag("natural"))

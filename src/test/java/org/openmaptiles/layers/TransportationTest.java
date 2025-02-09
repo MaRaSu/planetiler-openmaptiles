@@ -77,11 +77,12 @@ class TransportationTest extends AbstractLayerTest {
       "foot", "<null>"
     )), result);
   }
-/*
+
+  /*
   @Test
   void testImportantPath() {
     var rel = new OsmElement.Relation(1);
-
+  
     rel.setTag("colour", "white");
     rel.setTag("name", "Appalachian Trail - 11 MA");
     rel.setTag("network", "nwn");
@@ -93,7 +94,7 @@ class TransportationTest extends AbstractLayerTest {
     rel.setTag("type", "route");
     rel.setTag("wikidata", "Q620648");
     rel.setTag("wikipedia", "en:Appalachian Trail");
-
+  
     FeatureCollector features = process(lineFeatureWithRelation(
       profile.preprocessOsmRelation(rel),
       Map.of(
@@ -123,7 +124,7 @@ class TransportationTest extends AbstractLayerTest {
       "name:latin", "Appalachian Trail"
     )), features);
   }
- */
+   */
   @Test
   void testUnnamedPath() {
     assertFeatures(14, List.of(Map.of(
@@ -895,7 +896,7 @@ class TransportationTest extends AbstractLayerTest {
     relMA.setTag("network", "US:MA");
     relMA.setTag("ref", "2");
   }
-/*
+  /*
   @Test
   void testUSAndStateHighway() {
     assertFeatures(13, List.of(Map.of(
@@ -926,7 +927,7 @@ class TransportationTest extends AbstractLayerTest {
         "ref", "US 3;MA 2",
         "surface", "asphalt"
       ))));
-
+  
     // swap order
     assertFeatures(13, List.of(Map.of(
       "_layer", "transportation",
@@ -1508,7 +1509,8 @@ class TransportationTest extends AbstractLayerTest {
       0
     )));
   }
-/* 
+
+  /* 
   @Test
   void testGreatBritainTertiary() {
     process(SimpleFeature.create(
@@ -1518,7 +1520,7 @@ class TransportationTest extends AbstractLayerTest {
       "ne_10m_admin_0_countries",
       0
     ));
-
+  
     // in GB
     assertFeatures(13, List.of(Map.of(
       "_layer", "transportation",
@@ -1542,7 +1544,7 @@ class TransportationTest extends AbstractLayerTest {
       0
     )));
   }
-*/
+  */
   @Test
   void testIrelandHighway() {
     process(SimpleFeature.create(

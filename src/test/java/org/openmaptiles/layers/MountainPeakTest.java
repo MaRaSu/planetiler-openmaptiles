@@ -36,7 +36,7 @@ class MountainPeakTest extends AbstractLayerTest {
       "ele", 100,
       "ele_ft", 328,
       "customary_ft", "<null>",
-
+  
       "_layer", "mountain_peak",
       "_type", "point",
       "_minzoom", 7,
@@ -49,7 +49,7 @@ class MountainPeakTest extends AbstractLayerTest {
       "name:es", "es wd name"
     )), peak);
   }
-
+  
   @Test
   void testLabelGrid() {
     var peak = process(pointFeature(Map.of(
@@ -64,7 +64,7 @@ class MountainPeakTest extends AbstractLayerTest {
       "_labelgrid_size", 100d
     )), peak);
   }
-*/
+  */
   @Test
   void testVolcano() {
     assertFeatures(14, List.of(Map.of(
