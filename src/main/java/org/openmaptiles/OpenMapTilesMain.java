@@ -41,7 +41,8 @@ public class OpenMapTilesMain {
         sourcesDir.resolve("lake_centerline.shp.zip"),
         // upstream is at https://github.com/acalcutt/osm-lakelines/releases/download/latest/lake_centerline.shp.zip ,
         // following is same URL as used in the OpenMapTiles (but SHP format), a mirror maintained by MapTiler
-        "https://dev.maptiler.download/geodata/omt/lake_centerline.shp.zip")
+        //"https://dev.maptiler.download/geodata/omt/lake_centerline.shp.zip")
+        "https://github.com/acalcutt/osm-lakelines/releases/download/v12/lake_centerline.shp.zip")
       .addShapefileSource(OpenMapTilesProfile.WATER_POLYGON_SOURCE,
         sourcesDir.resolve("water-polygons-split-3857.zip"),
         "https://osmdata.openstreetmap.de/download/water-polygons-split-3857.zip")
