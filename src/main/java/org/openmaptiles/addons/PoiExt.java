@@ -112,7 +112,6 @@ public class PoiExt implements Layer, OpenMapTilesProfile.OsmAllProcessor {
     tagToClassSubclass.put("ford=yes", "ford,yes");
     tagToClassSubclass.put("ford=no", "ford,no");
     tagToClassSubclass.put("place=square", "place,square");
-    tagToClassSubclass.put("place=island", "place,island");
     tagToClassSubclass.put("place=archipelago", "place,archipelago");
     tagToClassSubclass.put("natural=peninsula", "natural,peninsula");
     tagToClassSubclass.put("natural=isthmus", "natural,isthmus");
