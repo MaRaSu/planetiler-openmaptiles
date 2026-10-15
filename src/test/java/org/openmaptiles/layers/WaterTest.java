@@ -520,6 +520,11 @@ class WaterTest extends AbstractLayerTest {
       "class", "lake",
       "_layer", "water",
       "_type", "polygon"
+    ), Map.of(
+      "class", "water",
+      "subclass", "spring",
+      "_layer", "poi_ext",
+      "_type", "point"
     )), process(polygonFeature(Map.of(
       "natural", "spring"
     ))));
